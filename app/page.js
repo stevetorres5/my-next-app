@@ -19,6 +19,7 @@ export default function Home() {
           </li>
           <li>Save and see your changes instantly.</li>
         </ol>
+        <h2>Just a simple edit.</h2>
 
         <div className={styles.ctas}>
           <a
