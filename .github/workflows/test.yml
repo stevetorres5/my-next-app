@@ -23,7 +23,7 @@ jobs:
       - name: Configure AWS Credentials (OIDC)
         uses: aws-actions/configure-aws-credentials@v4
         with:
-          role-to-assume: arn:aws:iam::226727481186:role/GitHubActionAssumeRole
+          role-to-assume: arn:aws:iam::226727481186:role/terraform_assumable_role
           aws-region: us-west-2
       - name: Sanity Check
         run: aws sts get-caller-identity # or your 'aws amplify' commands

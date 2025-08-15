@@ -26,12 +26,12 @@ resource "aws_s3_bucket_server_side_encryption_configuration" "sse_config" {
 }
 
 resource "aws_s3_bucket_public_access_block" "terraform_state_public" {
-  bucket = aws_s3_bucket.terraform_state.bucket
+  bucket                  = aws_s3_bucket.terraform_state.bucket
   block_public_acls       = true
   block_public_policy     = true
   ignore_public_acls      = true
   restrict_public_buckets = true
-  depends_on = [ aws_s3_bucket.terraform_state ]
+  depends_on              = [aws_s3_bucket.terraform_state]
 }
 
 resource "aws_s3_bucket_policy" "terraform_state_bucket_policy" {
@@ -41,36 +41,111 @@ resource "aws_s3_bucket_policy" "terraform_state_bucket_policy" {
     Version = "2012-10-17"
     Statement = [
       {
-        Sid = "MustBeEncryptedInTransit",
-        Effect = "Deny",
+        Sid       = "MustBeEncryptedInTransit",
+        Effect    = "Deny",
         Principal = "*",
-        Action = "s3:*",
-        Resource: [
+        Action    = "s3:*",
+        Resource : [
           "${aws_s3_bucket.terraform_state.arn}",
           "${aws_s3_bucket.terraform_state.arn}/*"
         ],
         Condition = {
-          Bool: {
-            "aws:SecureTransport": "false"
+          Bool : {
+            "aws:SecureTransport" : "false"
           }
         }
       },
       {
-        Sid: "EnforceTLSv12orHigher",
-        Effect: "Deny",
-        Principal: {
-          "AWS": "*"
+        Sid : "EnforceTLSv12orHigher",
+        Effect : "Deny",
+        Principal : {
+          "AWS" : "*"
         },
-        Action: "s3:*",
-        Resource: [
+        Action : "s3:*",
+        Resource : [
           "${aws_s3_bucket.terraform_state.arn}",
           "${aws_s3_bucket.terraform_state.arn}/*"
         ],
-        Condition: {
-          NumericLessThan: {
-            "s3:TlsVersion": 1.2
+        Condition : {
+          NumericLessThan : {
+            "s3:TlsVersion" : 1.2
           }
         }
+      }
+    ]
+  })
+}
+
+resource "aws_iam_openid_connect_provider" "openid_provider" {
+  url             = "https://token.actions.githubusercontent.com"
+  client_id_list  = ["sts.amazonaws.com"]
+  thumbprint_list = ["2b18947a6a9fc7764fd8b5fb18a863b0c6dac24f"]
+}
+
+data "aws_iam_policy_document" "assume_role_trust_policy" {
+  statement {
+    effect  = "Allow"
+    actions = ["sts:AssumeRoleWithWebIdentity"]
+    principals {
+      type = "Federated"
+      identifiers = [
+        "arn:aws:iam::226727481186:oidc-provider/token.actions.githubusercontent.com"
+      ]
+    }
+    condition {
+      test     = "StringEquals"
+      variable = "token.actions.githubusercontent.com:aud"
+      values   = ["sts.amazonaws.com"]
+    }
+    condition {
+      test     = "StringLike"
+      variable = "token.actions.githubusercontent.com:sub"
+      values   = ["repo:stevetorres5/my-next-app:*"]
+    }
+  }
+}
+
+resource "aws_iam_role" "terraform_assumable_role" {
+  name               = "terraform_assumable_role"
+  assume_role_policy = data.aws_iam_policy_document.assume_role_trust_policy.json
+}
+
+resource "aws_iam_role_policy_attachment" "amplify_admin_policy_attachment" {
+  role       = aws_iam_role.terraform_assumable_role.name
+  policy_arn = "arn:aws:iam::aws:policy/AdministratorAccess-Amplify"
+}
+
+resource "aws_iam_role_policy" "terraform_assumable_role_inline_policy" {
+  name = "terraform_assumable_role_inline_policy"
+  role = aws_iam_role.terraform_assumable_role.id
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Effect = "Allow"
+        Action = [
+          "ssm:GetParameter",
+          "ssm:GetParameters",
+          "ssm:GetParametersByPath"
+        ]
+        Resource = "arn:aws:ssm:us-west-2:226727481186:parameter/nonprod/*"
+      },
+      {
+        Effect = "Allow"
+        Action = [
+          "kms:Decrypt"
+        ]
+        Resource = "*"
+      },
+      {
+        Effect = "Allow"
+        Action = [
+          "s3:*"
+        ]
+        Resource = [
+          "arn:aws:s3:::example-terraform-state-tfstate",
+          "arn:aws:s3:::example-terraform-state-tfstate/*"
+        ]
       }
     ]
   })
