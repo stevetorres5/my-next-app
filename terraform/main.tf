@@ -1,8 +1,8 @@
 terraform {
   backend "s3" {
-    bucket = "example-terraform-state-tfstate"
-    key    = "amplify/terraform.tfstate"
-    region = "us-west-2"
+    bucket  = "example-terraform-state-tfstate"
+    key     = "amplify/terraform.tfstate"
+    region  = "us-west-2"
     encrypt = true
   }
 }
@@ -12,16 +12,16 @@ provider "aws" {
 }
 
 data "aws_ssm_parameter" "ssm_githubtoken" {
-  name           = "/nonprod/essaypop/githubtoken"
+  name            = "/nonprod/essaypop/githubtoken"
   with_decryption = true
 }
 
 resource "aws_amplify_app" "app" {
-  name        = "my-app"
-  repository  = "https://github.com/${var.github_owner}/${var.github_repo}"
+  name         = "my-app"
+  repository   = "https://github.com/${var.github_owner}/${var.github_repo}"
   access_token = data.aws_ssm_parameter.ssm_githubtoken.value
-  platform    = "WEB_COMPUTE"
-  build_spec  = file("${path.module}/amplify.yml")
+  platform     = "WEB_COMPUTE"
+  build_spec   = file("${path.module}/amplify.yml")
 
   auto_branch_creation_config {
     enable_auto_build = false
@@ -36,8 +36,8 @@ resource "aws_amplify_app" "app" {
 }
 
 resource "aws_amplify_branch" "main" {
-  app_id = aws_amplify_app.app.id
-  branch_name = "main"
+  app_id            = aws_amplify_app.app.id
+  branch_name       = "main"
   enable_auto_build = true
 
   stage = "DEVELOPMENT"
@@ -48,7 +48,7 @@ resource "aws_amplify_branch" "main" {
 }
 
 resource "null_resource" "trigger_amplify_deployment" {
-  depends_on = [ aws_amplify_branch.main ]
+  depends_on = [aws_amplify_branch.main]
 
   triggers = {
     app_id = "${timestamp()}"
@@ -101,12 +101,12 @@ import {
 }
 
 resource "aws_s3_bucket_public_access_block" "terraform_state_public" {
-  bucket = aws_s3_bucket.terraform_state.bucket
+  bucket                  = aws_s3_bucket.terraform_state.bucket
   block_public_acls       = true
   block_public_policy     = true
   ignore_public_acls      = true
   restrict_public_buckets = true
-  depends_on = [ aws_s3_bucket.terraform_state ]
+  depends_on              = [aws_s3_bucket.terraform_state]
 }
 
 
@@ -121,34 +121,34 @@ resource "aws_s3_bucket_policy" "terraform_state_bucket_policy" {
     Version = "2012-10-17"
     Statement = [
       {
-        Sid = "MustBeEncryptedInTransit",
-        Effect = "Deny",
+        Sid       = "MustBeEncryptedInTransit",
+        Effect    = "Deny",
         Principal = "*",
-        Action = "s3:*",
-        Resource: [
+        Action    = "s3:*",
+        Resource : [
           "${aws_s3_bucket.terraform_state.arn}",
           "${aws_s3_bucket.terraform_state.arn}/*"
         ],
         Condition = {
-          Bool: {
-            "aws:SecureTransport": "false"
+          Bool : {
+            "aws:SecureTransport" : "false"
           }
         }
       },
       {
-        Sid: "EnforceTLSv12orHigher",
-        Effect: "Deny",
-        Principal: {
-          "AWS": "*"
+        Sid : "EnforceTLSv12orHigher",
+        Effect : "Deny",
+        Principal : {
+          "AWS" : "*"
         },
-        Action: "s3:*",
-        Resource: [
+        Action : "s3:*",
+        Resource : [
           "${aws_s3_bucket.terraform_state.arn}",
           "${aws_s3_bucket.terraform_state.arn}/*"
         ],
-        Condition: {
-          NumericLessThan: {
-            "s3:TlsVersion": 1.2
+        Condition : {
+          NumericLessThan : {
+            "s3:TlsVersion" : 1.2
           }
         }
       }
