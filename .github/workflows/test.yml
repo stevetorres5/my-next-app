@@ -12,11 +12,27 @@ permissions:
 jobs:
   deploy:
     runs-on: ubuntu-latest
+
     steps:
-      - uses: actions/checkout@v3
-      - uses: aws-actions/configure-aws-credentials@v4
+      - name: Checkout code
+        uses: actions/checkout@v3
+      
+      - name: Set up Terraform
+        uses: hashicorp/setup-terraform@v2
+
+      - name: Configure AWS Credentials (OIDC)
+        uses: aws-actions/configure-aws-credentials@v4
         with:
           role-to-assume: arn:aws:iam::226727481186:role/GitHubActionAssumeRole
           aws-region: us-west-2
-      - run: aws sts get-caller-identity # or your 'aws amplify' commands
-      - run: echo "Deployment successful"
+      - name: Sanity Check
+        run: aws sts get-caller-identity # or your 'aws amplify' commands
+        run: echo "Deployment successful"
+
+      - name: Terraform Plan
+        env:
+          TF_VAR_github_owner: ${{ github.repository_owner }}
+          TF_VAR_github_repo: ${{ github.event.repository.name }}
+        run: |
+          cd terraform && \
+          terraform plan
