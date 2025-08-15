@@ -34,4 +34,5 @@ jobs:
           TF_VAR_github_repo: ${{ github.event.repository.name }}
         run: |
           cd terraform && \
+          terraform init && \
           terraform plan
