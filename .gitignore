@@ -1,5 +1,27 @@
 # See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
 
+**/.terraform/*
+.terraform/
+
+*.tfstate
+*.tfstate.*
+
+crash.log
+crash.*.log
+
+*.tfvars
+*.tfvars.json
+
+override.tf
+override.tf.json
+*_override.tf
+*_override.tf.json
+
+.terraform.tfstate.lock.info
+
+.terraformrc
+terraform.rc
+
 # dependencies
 /node_modules
 /.pnp
