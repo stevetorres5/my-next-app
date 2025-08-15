@@ -1,0 +1,14 @@
+permissions:
+  id-token: write
+  contents: read
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: arn:aws:iam::226727481186:role/GitHubActionAssumeRole
+          aws-region: us-west-2
+      - run: aws sts get-caller-identity # or your 'aws amplify' commands
+      - run: echo "Deployment successful"
