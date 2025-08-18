@@ -17,7 +17,7 @@ resource "aws_iam_role" "amplify_service_role" {
 
 resource "aws_iam_role_policy" "cloudwatch_logs" {
     name = "Essaypop-CloudWatchLogsAccess"
-    role = aws_iam_role.amplify_service_role.arn
+    role = aws_iam_role.amplify_service_role.id
 
     policy = jsonencode({
         Version = "2012-10-17"
