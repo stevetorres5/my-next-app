@@ -1,9 +1,18 @@
 name: Deploy Amplify with Terraform
 
 on:
-  push:
-    branches:
-      - main
+  workflow_dispatch:
+    inputs:
+      env:
+        description: "Environment to Deploy"
+        default: sandbox
+        required: true
+        type: choice
+        options:
+          - sandbox
+          - dev
+          - qastg
+          - prod
 
 permissions:
   id-token: write
