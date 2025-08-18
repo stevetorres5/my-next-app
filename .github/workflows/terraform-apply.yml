@@ -46,7 +46,7 @@ jobs:
           TF_VAR_github_repo: ${{ github.event.repository.name }}
         run: |
           cd terraform && \
-          terraform workspace select ${{ github.event.inputs.env }} || terraform workspace new ${{ github.event.inputs.env }} && \
           terraform init -backend=true -backend-config="bucket=essaypop-${{ github.event.inputs.env }}-tfstate" -backend-config="key=terraform.tfstate" -backend-config="region=us-west-2" -backend-config="encrypt=true" && \
+          terraform workspace select ${{ github.event.inputs.env }} || terraform workspace new ${{ github.event.inputs.env }} && \
           terraform plan && \
           terraform apply -auto-approve
