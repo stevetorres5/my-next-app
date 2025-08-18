@@ -5,16 +5,16 @@ data "aws_ssm_parameter" "ssm_githubtoken" {
 }
 
 resource "aws_amplify_app" "app" {
-  name         = "my-app"
-  repository   = "https://github.com/${var.github_owner}/${var.github_repo}"
+  name                        = "my-app"
+  repository                  = "https://github.com/${var.github_owner}/${var.github_repo}"
   enable_auto_branch_creation = false
   enable_branch_auto_deletion = false
-  access_token = data.aws_ssm_parameter.ssm_githubtoken.value
+  access_token                = data.aws_ssm_parameter.ssm_githubtoken.value
 
   iam_service_role_arn = aws_iam_role.amplify_service_role.arn
 
-  platform     = "WEB_COMPUTE"
-  build_spec   = file("${path.module}/amplify.yml")
+  platform   = "WEB_COMPUTE"
+  build_spec = file("${path.module}/amplify.yml")
 
   auto_branch_creation_config {
     enable_auto_build = false
