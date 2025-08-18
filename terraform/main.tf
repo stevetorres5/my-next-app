@@ -1,12 +1,3 @@
-terraform {
-  backend "s3" {
-    bucket  = "example-terraform-state-tfstate"
-    key     = "amplify/terraform.tfstate"
-    region  = "us-west-2"
-    encrypt = true
-  }
-}
-
 data "aws_caller_identity" "account" {}
 
 locals {
@@ -19,9 +10,20 @@ locals {
   ssm_path = "${local.application}/${local.env}"
 }
 
+terraform {
+  backend "s3" {
+    bucket  = "${local.application}-${local.env}-tfstate"
+    key     = "terraform.tfstate"
+    region  = local.region
+    encrypt = true
+  }
+}
+
+
 provider "aws" {
   region = local.region
 }
+
 
 import {
   to = aws_s3_bucket.terraform_state

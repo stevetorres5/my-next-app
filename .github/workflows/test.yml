@@ -52,6 +52,7 @@ jobs:
         if: (steps.changed-files.outputs.any_changed == 'true')
         run: |
           cd terraform && \
+          terraform workspace select ${{ github.event.inputs.env }} || terraform workspace new ${{ github.event.inputs.env }} && \
           terraform init && \
           terraform plan && \
           terraform apply -auto-approve
