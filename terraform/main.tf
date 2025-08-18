@@ -1,24 +1,19 @@
-data "aws_caller_identity" "account" {}
-
-locals {
-  region = "us-west-2"
-  application = "essaypop"
-  env = terraform.workspace
-  account_id = data.aws_caller_identity.account.account_id
-
-  github_repo = "stevetorres5/my-next-app"
-  ssm_path = "${local.application}/${local.env}"
-}
-
 terraform {
   backend "s3" {
-    bucket  = "${local.application}-${local.env}-tfstate"
-    key     = "terraform.tfstate"
-    region  = local.region
-    encrypt = true
   }
 }
 
+data "aws_caller_identity" "account" {}
+
+locals {
+  region      = "us-west-2"
+  application = "essaypop"
+  env         = terraform.workspace
+  account_id  = data.aws_caller_identity.account.account_id
+
+  github_repo = "stevetorres5/my-next-app"
+  ssm_path    = "${local.application}/${local.env}"
+}
 
 provider "aws" {
   region = local.region
