@@ -7,24 +7,36 @@ terraform {
   }
 }
 
+data "aws_caller_identity" "account" {}
+
+locals {
+  region = "us-west-2"
+  application = "essaypop"
+  env = terraform.workspace
+  account_id = data.aws_caller_identity.account.account_id
+
+  github_repo = "stevetorres5/my-next-app"
+  ssm_path = "${local.application}/${local.env}"
+}
+
 provider "aws" {
-  region = var.aws_region
+  region = local.region
 }
 
 import {
   to = aws_s3_bucket.terraform_state
-  id = "example-terraform-state-tfstate"
+  id = "${local.application}-${local.env}-tfstate"
 }
 resource "aws_s3_bucket" "terraform_state" {
-  bucket = "example-terraform-state-tfstate"
+  bucket = "${local.application}-${local.env}-tfstate"
   lifecycle {
-    prevent_destroy = true
+    # prevent_destroy = true
   }
 }
 
 import {
   to = aws_s3_bucket_versioning.versioning_config
-  id = "example-terraform-state-tfstate"
+  id = "${local.application}-${local.env}-tfstate"
 }
 resource "aws_s3_bucket_versioning" "versioning_config" {
   bucket = aws_s3_bucket.terraform_state.id
@@ -35,7 +47,7 @@ resource "aws_s3_bucket_versioning" "versioning_config" {
 
 import {
   to = aws_s3_bucket_server_side_encryption_configuration.sse_config
-  id = "example-terraform-state-tfstate"
+  id = "${local.application}-${local.env}-tfstate"
 }
 
 resource "aws_s3_bucket_server_side_encryption_configuration" "sse_config" {
@@ -49,7 +61,7 @@ resource "aws_s3_bucket_server_side_encryption_configuration" "sse_config" {
 
 import {
   to = aws_s3_bucket_public_access_block.terraform_state_public
-  id = "example-terraform-state-tfstate"
+  id = "${local.application}-${local.env}-tfstate"
 }
 
 resource "aws_s3_bucket_public_access_block" "terraform_state_public" {
@@ -64,7 +76,7 @@ resource "aws_s3_bucket_public_access_block" "terraform_state_public" {
 
 import {
   to = aws_s3_bucket_policy.terraform_state_bucket_policy
-  id = "example-terraform-state-tfstate"
+  id = "${local.application}-${local.env}-tfstate"
 }
 resource "aws_s3_bucket_policy" "terraform_state_bucket_policy" {
   bucket = aws_s3_bucket.terraform_state.bucket
@@ -108,4 +120,3 @@ resource "aws_s3_bucket_policy" "terraform_state_bucket_policy" {
   })
 }
 
-# import other bootstrap resources

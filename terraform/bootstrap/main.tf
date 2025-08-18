@@ -1,11 +1,23 @@
-provider "aws" {
+data "aws_caller_identity" "account" {}
+
+locals {
   region = "us-west-2"
+  application = "essaypop"
+  env = terraform.workspace
+  account_id = data.aws_caller_identity.account.account_id
+
+  github_repo = "stevetorres5/my-next-app"
+  ssm_path = "${local.application}/${local.env}"
+}
+
+provider "aws" {
+  region = local.region
 }
 
 resource "aws_s3_bucket" "terraform_state" {
-  bucket = "example-terraform-state-tfstate"
+  bucket = "${local.application}-${local.env}-tfstate"
   lifecycle {
-    prevent_destroy = true
+    # prevent_destroy = true # TODO: Enable this line to prevent accidental deletion
   }
 }
 
@@ -89,7 +101,7 @@ data "aws_iam_policy_document" "assume_role_trust_policy" {
     principals {
       type = "Federated"
       identifiers = [
-        "arn:aws:iam::226727481186:oidc-provider/token.actions.githubusercontent.com"
+        "arn:aws:iam::${local.account_id}:oidc-provider/token.actions.githubusercontent.com"
       ]
     }
     condition {
@@ -100,13 +112,13 @@ data "aws_iam_policy_document" "assume_role_trust_policy" {
     condition {
       test     = "StringLike"
       variable = "token.actions.githubusercontent.com:sub"
-      values   = ["repo:stevetorres5/my-next-app:*"]
+      values   = ["repo:${local.github_repo}:*"]
     }
   }
 }
 
 resource "aws_iam_role" "terraform_assumable_role" {
-  name               = "terraform_assumable_role"
+  name               = "${local.application}-role"
   assume_role_policy = data.aws_iam_policy_document.assume_role_trust_policy.json
 }
 
@@ -116,7 +128,7 @@ resource "aws_iam_role_policy_attachment" "amplify_admin_policy_attachment" {
 }
 
 resource "aws_iam_role_policy" "terraform_assumable_role_inline_policy" {
-  name = "terraform_assumable_role_inline_policy"
+  name = "essaypop-amplify_assumable_role_inline_policy"
   role = aws_iam_role.terraform_assumable_role.id
   policy = jsonencode({
     Version = "2012-10-17"
@@ -128,7 +140,7 @@ resource "aws_iam_role_policy" "terraform_assumable_role_inline_policy" {
           "ssm:GetParameters",
           "ssm:GetParametersByPath"
         ]
-        Resource = "arn:aws:ssm:us-west-2:226727481186:parameter/nonprod/*"
+        Resource = "arn:aws:ssm:${local.region}:${local.account_id}:parameter/${local.ssm_path}/*"
       },
       {
         Effect = "Allow"
@@ -143,8 +155,8 @@ resource "aws_iam_role_policy" "terraform_assumable_role_inline_policy" {
           "s3:*"
         ]
         Resource = [
-          "arn:aws:s3:::example-terraform-state-tfstate",
-          "arn:aws:s3:::example-terraform-state-tfstate/*"
+          "arn:aws:s3:::${aws_s3_bucket.terraform_state.bucket}",
+          "arn:aws:s3:::${aws_s3_bucket.terraform_state.bucket}/*"
         ]
       }
     ]
