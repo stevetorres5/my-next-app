@@ -158,6 +158,13 @@ resource "aws_iam_role_policy" "terraform_assumable_role_inline_policy" {
           "arn:aws:s3:::${aws_s3_bucket.terraform_state.bucket}",
           "arn:aws:s3:::${aws_s3_bucket.terraform_state.bucket}/*"
         ]
+      },
+      {
+        Effect = "Allow"
+        Action = [
+          "iam:GetRolePolicy"
+        ]
+        Resource = "*"
       }
     ]
   })
