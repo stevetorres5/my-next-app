@@ -1,6 +1,6 @@
 
 data "aws_ssm_parameter" "ssm_githubtoken" {
-  name            = "/nonprod/essaypop/githubtoken"
+  name            = "/${local.ssm_path}/githubtoken"
   with_decryption = true
 }
 
