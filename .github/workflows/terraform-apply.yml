@@ -29,14 +29,6 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v3
 
-      - name: Detect changes
-        id: changed-files
-        uses: tj-actions/changed-files@v46.0.5
-        with:
-          files: |
-            terraform/**
-            terraform/**/*
-
       - name: Set up Terraform
         uses: hashicorp/setup-terraform@v2
 
@@ -52,7 +44,6 @@ jobs:
         env:
           TF_VAR_github_owner: ${{ github.repository_owner }}
           TF_VAR_github_repo: ${{ github.event.repository.name }}
-        if: (steps.changed-files.outputs.any_changed == 'true')
         run: |
           cd terraform && \
           terraform workspace select ${{ github.event.inputs.env }} || terraform workspace new ${{ github.event.inputs.env }} && \
