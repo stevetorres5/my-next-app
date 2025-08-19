@@ -88,10 +88,8 @@ resource "aws_s3_bucket_policy" "terraform_state_bucket_policy" {
   })
 }
 
-resource "aws_iam_openid_connect_provider" "openid_provider" {
-  url             = "https://token.actions.githubusercontent.com"
-  client_id_list  = ["sts.amazonaws.com"]
-  thumbprint_list = ["2b18947a6a9fc7764fd8b5fb18a863b0c6dac24f"]
+data "aws_iam_openid_connect_provider" "github" {
+  url = "https://token.actions.githubusercontent.com"
 }
 
 data "aws_iam_policy_document" "assume_role_trust_policy" {
@@ -118,7 +116,7 @@ data "aws_iam_policy_document" "assume_role_trust_policy" {
 }
 
 resource "aws_iam_role" "terraform_assumable_role" {
-  name               = "${local.application}-role"
+  name               = "${local.application}-${local.env}-role"
   assume_role_policy = data.aws_iam_policy_document.assume_role_trust_policy.json
 }
 
