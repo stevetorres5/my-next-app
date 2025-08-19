@@ -1,13 +1,13 @@
 data "aws_caller_identity" "account" {}
 
 locals {
-  region = "us-west-2"
+  region      = "us-west-2"
   application = "essaypop"
-  env = terraform.workspace
-  account_id = data.aws_caller_identity.account.account_id
+  env         = terraform.workspace
+  account_id  = data.aws_caller_identity.account.account_id
 
   github_repo = "stevetorres5/my-next-app"
-  ssm_path = "${local.application}/${local.env}"
+  ssm_path    = "${local.application}/${local.env}"
 }
 
 provider "aws" {
@@ -164,7 +164,7 @@ resource "aws_iam_role_policy" "terraform_assumable_role_inline_policy" {
         Action = [
           "iam:GetRolePolicy"
         ]
-        Resource = "*"
+        Resource = "*" # TODO: get guidance if this scope is too broad
       }
     ]
   })
