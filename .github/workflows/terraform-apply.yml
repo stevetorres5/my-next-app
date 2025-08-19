@@ -32,11 +32,23 @@ jobs:
       - name: Set up Terraform
         uses: hashicorp/setup-terraform@v2
 
+      - name: Read role ARN from JSON
+        id: readrole
+        working-directory: terraform/config
+        run: |
+          ROLE_TO_ASSUME=$(jq -r ".${{ github.event.inputs.env }}" roles.json)
+          if [ -z "$ROLE_TO_ASSUME" ] || [ "$ROLE_TO_ASSUME" = "null" ]; then
+            echo "ERROR: No role ARN found for environment '${{ github.event.inputs.env }}'."
+            exit 1
+          fi
+          echo "ROLE_TO_ASSUME=$ROLE_TO_ASSUME" >> $GITHUB_OUTPUT
+
       - name: Configure AWS Credentials (OIDC)
         uses: aws-actions/configure-aws-credentials@v4
         with:
-          role-to-assume: arn:aws:iam::226727481186:role/essaypop-role
+          role-to-assume: ${{ steps.readrole.outputs.ROLE_TO_ASSUME }}
           aws-region: us-west-2
+
       - name: Sanity Check
         run: aws sts get-caller-identity # or your 'aws amplify' commands
 
