@@ -1,3 +1,4 @@
 {
-  "sandbox": "arn:aws:iam::226727481186:role/essaypop-sandbox-role"
+  "sandbox": "arn:aws:iam::226727481186:role/essaypop-sandbox-role",
+  "dev": "arn:aws:iam::226727481186:role/essaypop-dev-role"
 }
