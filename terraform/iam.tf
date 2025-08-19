@@ -1,5 +1,5 @@
 resource "aws_iam_role" "amplify_service_role" {
-  name = "Essaypop-AmplifyServiceRole"
+  name = "${local.application}-${local.env}-AmplifyServiceRole"
 
   assume_role_policy = jsonencode({
     Version = "2012-10-17"
@@ -16,7 +16,7 @@ resource "aws_iam_role" "amplify_service_role" {
 }
 
 resource "aws_iam_role_policy" "cloudwatch_logs" {
-  name = "Essaypop-CloudWatchLogsAccess"
+  name = "${local.application}-${local.env}-CloudWatchLogsAccess"
   role = aws_iam_role.amplify_service_role.id
 
   policy = jsonencode({

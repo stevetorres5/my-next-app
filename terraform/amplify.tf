@@ -5,7 +5,7 @@ data "aws_ssm_parameter" "ssm_githubtoken" {
 }
 
 resource "aws_amplify_app" "app" {
-  name                        = "my-app"
+  name                        = "${local.application}-${local.env}-app"
   repository                  = "https://github.com/${var.github_owner}/${var.github_repo}"
   enable_auto_branch_creation = false
   enable_branch_auto_deletion = false
@@ -36,7 +36,7 @@ resource "aws_amplify_branch" "main" {
   stage = "DEVELOPMENT"
 
   environment_variables = {
-    APP_ENV = "DEVELOPMENT"
+    APP_ENV = local.env
   }
 }
 
